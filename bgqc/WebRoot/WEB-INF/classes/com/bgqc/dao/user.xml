@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="User">
+	<!-- 查询结果必须有resulttype或resultmap属性，否则无法接受数据 -->
+	<!-- resulttype代表用于封装的类，resultmap代表别名的映射， -->
+	<!-- <resultMap type="Hsuser" id="Hsusermapper">
+		<id column="数据库里的id列名" property="别名"/>
+		<result column="数据库里其他列明" property="别名"/>
+	</resultMap> -->
+	<!-- 查看用户界面主select -->
+	<select id="selectAll" resultType="UserBean" parameterType="UserBean">
+		select user_id,name,auth,office_phone,mobile_phone,v_phone,department,job,picture,user_state
+		,user_enable from users
+		<where>
+			<if test="name!=null and name!=''">
+				and name like CONCAT(CONCAT('%',#{name}),'%')
+			</if>
+			<if test="user_enable==null or user_enable==10">
+				and user_enable=0
+			</if>
+		</where>
+	</select>
+	<!-- 查看是否有重复的用户，主要看电话号码，用于增加用户 -->
+	<select id="selectPhone" resultType="UserBean" parameterType="UserBean">
+		select user_id,password,name,auth,office_phone,mobile_phone,v_phone,department,job,picture,user_state
+		,user_enable from users
+		<where>
+			<if test="mobile_phone!=null">
+				and mobile_phone=#{mobile_phone}
+			</if>
+		</where>
+	</select>
+	<!-- 增加用户 -->
+	<insert id="insert" parameterType="UserBean">
+	<!--  useGeneratedKeys="true" keyProperty="user_id" 这个写在《》里，可以返回主键-->		
+	
+		insert into users (user_id,name,auth,office_phone,mobile_phone,v_phone,department,job,
+		user_state,user_enable,password) 
+		values(usersxl.nextval,#{name},#{auth},#{office_phone},#{mobile_phone},#{v_phone},
+		#{department},#{job},#{user_state},#{user_enable},'e10adc3949ba59abbe56e057f20f883e')
+	</insert>
+	<!-- 修改用户 -->
+	<update id="update" parameterType="UserBean">
+		update users set name=#{name},auth=#{auth},office_phone=#{office_phone},
+		mobile_phone=#{mobile_phone},v_phone=#{v_phone},department=#{department},
+		job=#{job},user_state=#{user_state},user_enable=#{user_enable}
+		 where user_id=#{user_id}
+	</update>
+	<!-- 在删除之前调用，查看某用户是否是司机，是司机就不让删除 -->
+	<select id="delfindindrivers" parameterType="UserBean" resultType="java.lang.Integer">
+		select count(*) from drivers where driver_user_id=#{user_id}
+	</select>
+	<!-- 在删除之前调用，查看某用户是否已经有过使用记录，有记录就不让删除 -->
+	<select id="delfindinrequests" parameterType="UserBean" resultType="java.lang.Integer">
+		select count(*) from requests where request_user_id=#{user_id}
+	</select>
+	<!-- 删除用户 -->
+	<delete id="del" parameterType="UserBean">
+		delete from users where user_id=#{user_id}
+	</delete>
+	<!-- 重置密码，把密码写成123456的md5 -->
+	<update id="repass" parameterType="UserBean">
+		update users set password='e10adc3949ba59abbe56e057f20f883e' where user_id=#{user_id}
+	</update>
+	<!-- 借地方写个login的select -->
+	<select id="login" resultType="UserBean" parameterType="UserBean">
+		select * from users where mobile_phone=#{mobile_phone} and password=#{password} and user_enable=0
+	</select>
+	<update id="changepassword" parameterType="UserBean">
+		update users set password=#{password} where user_id=#{user_id}
+	</update>
+	<select id="selectmobile_phone" resultType="UserBean" parameterType="UserBean">
+		select user_id,mobile_phone from users where mobile_phone=#{mobile_phone}
+	</select>
+	<update id="changeuser" parameterType="UserBean">
+		update users set name=#{name},mobile_phone=#{mobile_phone},office_phone=#{office_phone},v_phone=#{v_phone},department=#{department},job=#{job} where user_id=#{user_id}
+	</update>
+</mapper>

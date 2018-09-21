@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Test">
+
+	<select id="getCar" resultType="CarBean" >
+		select * from cars where car_enable=0
+	</select>
+	<select id="getDriver" resultType="DriverBean" >
+		select * from drivers where driver_enable=0
+	</select>
+	<select id="getUser" resultType="UserBean" >
+		select * from users where user_enable=0 and auth=0
+	</select>
+	<select id="getLastRequest" resultType="java.lang.Integer" >
+		select max(request_id) from requestsh
+	</select>
+	<select id="getLastTask" resultType="java.lang.Integer" >
+		select max(task_id) from tasksh
+	</select>
+	<insert id="insertTask" parameterType="java.util.List" useGeneratedKeys="false">
+		insert all
+		<foreach collection="list" item="task" index="index" separator="">
+		into tasksh values
+		(#{task.task_id},#{task.task_driver_id},#{task.task_car_id},
+		#{task.maybegintime},#{task.begintime},#{task.endtime},
+		#{task.task_state},#{task.ordertime})
+		</foreach>
+		select 1 from dual
+	</insert>
+	
+	<insert id="insertRequest" parameterType="java.util.List" useGeneratedKeys="false">
+		insert all 
+		<foreach collection="list" item="request" index="index" separator=" ">
+			into requestsh values(#{request.request_id},#{request.request_user_id},#{request.requesttime}，
+			#{request.needstarttime},#{request.needendtime},#{request.needplace},
+			#{request.needreason},#{request.needseats},#{request.request_task_id},
+			#{request.request_state},#{request.needduringtime})
+		</foreach>
+		select 1 from dual
+	</insert>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- 查看是否有重复的用户，主要看电话号码，用于增加用户 -->
+	<select id="selectPhone" resultType="UserBean" parameterType="UserBean">
+		select user_id,password,name,auth,office_phone,mobile_phone,v_phone,department,job,picture,user_state
+		,user_enable from users
+		<where>
+			<if test="mobile_phone!=null">
+				and mobile_phone=#{mobile_phone}
+			</if>
+		</where>
+	</select>
+	<!-- 增加用户 -->
+	<insert id="insert" parameterType="UserBean">
+	<!--  useGeneratedKeys="true" keyProperty="user_id" 这个写在《》里，可以返回主键-->		
+	
+		insert into users (user_id,name,auth,office_phone,mobile_phone,v_phone,department,job,
+		user_state,user_enable,password) 
+		values(usersxl.nextval,#{name},#{auth},#{office_phone},#{mobile_phone},#{v_phone},
+		#{department},#{job},#{user_state},#{user_enable},'e10adc3949ba59abbe56e057f20f883e')
+	</insert>
+	<!-- 修改用户 -->
+	
+</mapper>

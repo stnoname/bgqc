@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Car">
+	<!-- 查询结果必须有resulttype或resultmap属性，否则无法接受数据 -->
+	<!-- resulttype代表用于封装的类，resultmap代表别名的映射， -->
+	<!-- <resultMap type="Hsuser" id="Hsusermapper">
+		<id column="数据库里的id列名" property="别名"/>
+		<result column="数据库里其他列明" property="别名"/>
+	</resultMap> -->
+	<!-- 查看用户界面主select -->
+	<select id="selectAll" resultType="CarBean" parameterType="CarBean">
+		select car_id,car_number,car_state,car_enable,car_reason,seats from cars
+		<where>
+			<if test="car_number!=null and car_number!=''">
+				and car_number like CONCAT(CONCAT('%',#{car_number}),'%')
+			</if>
+			<if test="car_enable==null or car_enable==10">
+				and car_enable!=20
+			</if>
+			
+		</where>
+	</select>
+	<!-- 查看是否有重复的车辆，主要看车牌号，用于增加用户 -->
+	<select id="selectNumber" resultType="CarBean" parameterType="CarBean">
+		select car_id,car_number,car_state,car_enable,car_reason,seats from cars
+		<where>
+			<if test="car_number!=null">
+				and car_number=#{car_number}
+			</if>
+		</where>
+	</select>
+	<!-- 增加用户 -->
+	<insert id="insert" parameterType="CarBean">
+	<!--  useGeneratedKeys="true" keyProperty="user_id" 这个写在《》里，可以返回主键-->		
+	
+		insert into cars (car_id,car_number,seats,car_state,car_enable,car_reason) 
+		values(carsxl.nextval,#{car_number},#{seats},#{car_state},#{car_enable},#{car_reason})
+	</insert>
+	<!-- 修改用户 -->
+	<update id="update" parameterType="CarBean">
+		update cars set car_number=#{car_number},car_state=#{car_state},car_enable=#{car_enable},
+		car_reason=#{car_reason},seats=#{seats}
+		 where car_id=#{car_id}
+	</update>
+	
+	<!-- 在删除之前调用，查看某用户是否已经有过使用记录，有记录就不让删除 -->
+	<select id="delfindinrequests" parameterType="CarBean" resultType="java.lang.Integer">
+		select count(*) from tasks where task_car_id=#{car_id}
+	</select>
+	<!-- 删除用户 -->
+	<delete id="del" parameterType="CarBean">
+		delete from cars where car_id=#{car_id}
+	</delete>
+	
+</mapper>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"  
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>  
+   <!-- 配置映射类的别名 -->  
+    <typeAliases>
+    	<typeAlias alias="UserBean" type="com.bgqc.beans.UserBean"/>
+    	<typeAlias alias="TaskBean" type="com.bgqc.beans.TaskBean"/>
+    	<typeAlias alias="DriverBean" type="com.bgqc.beans.DriverBean"/>
+    	<typeAlias alias="CarBean" type="com.bgqc.beans.CarBean"/>
+    	<typeAlias alias="RequestBean" type="com.bgqc.beans.RequestBean"/>
+    	<typeAlias alias="TimeBetweenBean" type="com.bgqc.beans.TimeBetweenBean"/>
+    	<typeAlias alias="CarReportBean" type="com.bgqc.beans.CarReportBean"/>
+    	<typeAlias alias="DriverReportBean" type="com.bgqc.beans.DriverReportBean"/>
+    	<typeAlias alias="UserReportBean" type="com.bgqc.beans.UserReportBean"/>
+    </typeAliases>    
+    
+   <!-- 配置Mapper文件的路径 -->  
+   <mappers>
+      <mapper resource="com/bgqc/dao/user.xml"/>
+      <mapper resource="com/bgqc/dao/task.xml"/>
+      <mapper resource="com/bgqc/dao/car.xml"/>
+      <mapper resource="com/bgqc/dao/driver.xml"/>
+      <mapper resource="com/bgqc/dao/request.xml"/>
+      <mapper resource="com/bgqc/dao/report.xml"/>
+      <mapper resource="com/bgqc/dao/test.xml"/>
+   </mappers>  
+   
+</configuration> 

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Driver">
+	<!-- 查询结果必须有resulttype或resultmap属性，否则无法接受数据 -->
+	<!-- resulttype代表用于封装的类，resultmap代表别名的映射， -->
+	<!-- <resultMap type="Hsuser" id="Hsusermapper">
+		<id column="数据库里的id列名" property="别名"/>
+		<result column="数据库里其他列明" property="别名"/>
+	</resultMap> -->
+	<!-- 查看用户界面主select -->
+	<select id="selectAll" resultType="DriverBean" parameterType="DriverBean">
+	select user_id,password,name,auth,office_phone,mobile_phone,v_phone,department,job,picture,user_state
+		,user_enable,driver_id,driver_user_id,driver_state,driver_enable,driver_reason from users,drivers
+		
+		<where>
+		 	user_id=driver_user_id
+			<if test="name!=null and name!=''">
+				and name like CONCAT(CONCAT('%',#{name}),'%')
+			</if>
+			<if test="driver_enable==null or driver_enable==20">
+				and driver_enable=0
+			</if>
+		</where>
+	</select>
+	
+	<!-- 查看不在司机表中的司机 -->
+	<select id="selectNewDriver" resultType="DriverBean" parameterType="DriverBean">
+		select user_id,name,mobile_phone,office_phone,v_phone,department,job
+		from users where auth=10 and user_id not in
+		 (select driver_user_id from drivers)
+	</select>
+	
+	<!-- 增加用户 -->
+	<insert id="insert" parameterType="DriverBean">
+	<!--  useGeneratedKeys="true" keyProperty="user_id" 这个写在《》里，可以返回主键-->		
+		insert into drivers(driver_id,driver_user_id,driver_state,driver_enable,driver_reason)
+		values(driversxl.nextval,#{user_id},#{driver_state},#{driver_enable},#{driver_reason})
+	</insert>
+	<!-- 修改用户 -->
+	<update id="update" parameterType="DriverBean">
+	update drivers set driver_state=#{driver_state},driver_enable=#{driver_enable},
+	driver_reason=#{driver_reason} where driver_id=#{driver_id}
+	
+	</update>
+	
+	<!-- 在删除之前调用，查看该司机是否接过订单，有订单记录的不能删除-->
+	 <select id="delfindintasks" parameterType="DriverBean" resultType="java.lang.Integer">
+		select count(0) from tasks where task_driver_id=#{driver_user_id}
+	</select>
+	
+	<!-- 删除用户 -->
+	 <delete id="del" parameterType="DriverBean">
+	 	delete from drivers where driver_user_id=#{driver_user_id}
+	</delete> 
+	<!-- 重置密码，把密码写成123456的md5 -->
+	<!-- <update id="repass" parameterType="UserBean">
+		update users set password='e10adc3949ba59abbe56e057f20f883e' where user_id=#{user_id}
+	</update> -->
+	
+</mapper>
+

@@ -1,0 +1,55 @@
+<link href="../css/tophtml.css" rel="stylesheet">
+  <div class="layui-side layui-bg-black" >
+    <div class="layui-side-scroll">
+      <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+      <ul class="layui-nav layui-nav-tree"  lay-filter="test" style="margin-top:10px">
+      	<li class="layui-nav-item">
+      		<a href="../jsp/report.jsp" lay-tips="首页">
+      			<i class="layui-icon layui-icon-home">
+      				&nbsp;
+      			</i>
+      			<cite>主页</cite>
+      		</a>
+      	</li>
+      	<li class="layui-nav-item">    	
+      		<a href="../jsp/request.jsp" lay-tips="我要请车">
+      			<i class="layui-icon layui-icon-form">
+      				&nbsp;
+      			</i>
+      			<cite>我要请车</cite>
+      		</a>     	
+      	</li>
+     
+        <li class="layui-nav-item">
+        	<a href="../jsp/task.jsp" lay-tips="需求受理">
+      			<i class="layui-icon layui-icon-survey">
+      				&nbsp;
+      			</i>
+      			<cite>需求受理</cite>
+      		</a>
+        </li>
+        <!-- <li class="layui-nav-item"><a href="">车况追踪</a></li> -->
+        <script type="text/javascript">
+        	if(auth==20){
+        		document.write(' <li class="layui-nav-item">'
+          
+          		+'<a href="javascript:;" lay-tips="系统维护">'
+      			+'<i class="layui-icon layui-icon-set">'
+      			+'\&nbsp;\&nbsp\&nbsp</i><cite>系统维护</cite></a><dl class="layui-nav-child"><dd data-name="console" class=""><a href="../jsp/user.jsp" lay-tips="人员管理">'
+            	+'&nbsp;&nbsp;<i class="layui-icon layui-icon-user">&nbsp;</i><cite>人员管理</cite></a></dd><dd data-name="console">'	
+            	+'<a href="../jsp/driver.jsp" lay-tips="司机管理" >&nbsp;&nbsp;<i class="layui-icon layui-icon-friends">&nbsp;'
+      				+'</i><cite>司机管理</cite></a></dd><dd data-name="console"><a href="../jsp/car.jsp" lay-tips="车辆管理" >&nbsp;&nbsp;'
+      				+'<i class="layui-icon layui-icon-console">&nbsp;</i><cite>车辆管理</cite></a></dd></dl></li>');}
+        </script>
+     	<li class="layui-nav-item">
+     		<a href="" lay-tips="使用说明">
+      			<i class="layui-icon layui-icon-read">
+      				&nbsp;
+      			</i>
+      		<cite>使用说明</cite>
+      		</a>
+      	</li>
+        
+      </ul>
+    </div>
+  </div>

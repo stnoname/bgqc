@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Requests">
+	<!-- 查询结果必须有resulttype或resultmap属性，否则无法接受数据 -->
+	<!-- resulttype代表用于封装的类，resultmap代表别名的映射， -->
+	<!-- <resultMap type="Hsuser" id="Hsusermapper">
+		<id column="数据库里的id列名" property="别名"/>
+		<result column="数据库里其他列明" property="别名"/>
+	</resultMap> -->
+	
+	<resultMap type="requestBean" id="requestBean">
+		<id column="request_id" property="request_id" />
+		<result column="requesttime" property="requesttime" />
+		<result column="needstarttime" property="needstarttime" />
+		<result column="needendtime" property="needendtime" />
+		<result column="needduringtime" property="needduringtime" />
+		<result column="needplace" property="needplace" />
+		<result column="needreason" property="needreason" />
+		<result column="needseats" property="needseats" />
+		<result column="request_task_id" property="request_task_id" />
+		<result column="request_state" property="request_state" />
+		<association property="userBean" javaType="userBean">
+			<id column="request_user_id" property="user_id" />
+			<result column="password" property="password" />
+			<result column="name" property="name" />
+			<result column="auth" property="auth" />
+			<result column="office_phone" property="office_phone" />
+			<result column="mobile_phone" property="mobile_phone" />
+			<result column="v_phone" property="v_phone" />
+			<result column="department" property="department" />
+			<result column="job" property="job" />
+			<result column="picture" property="picture" />
+			<result column="user_state" property="user_state" />
+			<result column="user_enable" property="user_enable" />
+		</association>
+	</resultMap>
+	<!-- 查看用户界面主select -->
+	<select id="selectAll" resultMap="requestBean">
+		select request_id,request_user_id,requesttime,
+		needstarttime,needendtime,needduringtime,needplace,
+		needreason,needseats,request_task_id,
+		nvl(task_state,request_state) as request_state,
+		users.name
+		from requests 
+		left join users 
+		on requests.request_user_id = users.user_id
+		left join tasks
+		on request_task_id=task_id and task_state!=90
+		<where> 
+			<if test="needplace!=null and needplace !=''">
+			and needplace like CONCAT(CONCAT('%',#{needplace}),'%')	
+			</if>
+		</where>
+		order by request_state desc
+	</select>
+	<!-- 添加一条请车需求 -->
+	<insert id="insert" parameterType="requestBean">
+		insert into requests (request_id,request_user_id,requesttime,
+		needstarttime,needendtime,needduringtime,needplace,
+		needreason,needseats,request_task_id,request_state) 
+		values(requestsxl.nextval,#{userBean.user_id},sysdate,
+		#{needstarttime},#{needendtime},#{needduringtime},#{needplace},
+		#{needreason},#{needseats},#{request_task_id},#{request_state})
+		<where>
+			
+		</where>
+	</insert>
+	<!-- 根据请车需求ID，更新一条请车需求 -->
+	<update id="update" parameterType="requestBean">
+		update requests set request_user_id=#{userBean.user_id},requesttime=sysdate,
+		needstarttime=#{needstarttime},needendtime=#{needendtime},needduringtime=#{needduringtime},
+		needplace=#{needplace},needreason=#{needreason},needseats=#{needseats},
+		request_task_id=#{request_task_id},request_state=#{request_state}
+		where request_id=#{request_id}
+	</update>
+	<!-- 根据请车需求ID，删除一条请车需求 -->
+	<delete id="delete" parameterType="requestBean">
+		delete from requests where request_id=#{request_id}
+	</delete>
+	
+	<update id="repass" parameterType="requestBean">
+		update requests set requesttime=sysdate,needstarttime='',needendtime='',needduringtime='0',
+		needplace='',needreason='',needseats=1,
+		request_task_id=0,request_state=10
+		where request_id=#{request_id}
+	</update>
+	
+</mapper>

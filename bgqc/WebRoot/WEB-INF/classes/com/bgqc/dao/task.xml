@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Task">
+	<!-- 查询结果必须有resulttype或resultmap属性，否则无法接受数据 -->
+	<!-- resulttype代表用于封装的类，resultmap代表别名的映射， -->
+	<!-- <resultMap type="Hsuser" id="Hsusermapper">
+		<id column="数据库里的id列名" property="别名"/>
+		<result column="数据库里其他列明" property="别名"/>
+	</resultMap> -->
+	<!-- 查询是否有空闲任务 -->
+<!-- 	<select id="selectfree" resultType="TaskBean" parameterType="TaskBean">
+		select * from tasks where task_state=60 and task_driver_id is null and task_car_id is null 
+		and maybegintime is null and task_id not in (select request_task_id from requests)
+	</select> -->
+	
+	<!-- 新增任务 -->
+	<insert id="insert" parameterType="TaskBean">
+		<selectKey resultType="java.lang.Integer" order="BEFORE" keyProperty="task_id">
+			SELECT tasksxl.nextval as task_id from DUAL
+		</selectKey>
+		insert into tasks (task_id,task_driver_id,task_car_id,maybegintime,task_state,ordertime) 
+			values(#{task_id},#{task_driver_id},#{task_car_id},#{maybegintime},#{task_state},#{ordertime})
+		
+	</insert>
+	
+	<select id="selectAll" resultType="TaskBean" parameterType="TaskBean">
+		select * from fulltasks 
+		<where>
+			task_state&lt;90
+			<if test="name!=null and name!=''">
+				and (name like CONCAT(CONCAT('%',#{name}),'%') or car_number like CONCAT(CONCAT('%',#{name}),'%')) 
+			</if>
+		</where>
+		order by endtime desc nulls last,begintime desc nulls last,ordertime desc nulls last
+	</select>
+	
+	<select id="selectDriver" resultType="DriverBean" parameterType="DriverBean">
+		select user_id,name,mobile_phone,driver_id,driver_state,(select count(0) from tasks where task_driver_id=driver_id and task_state&lt;90) as driver_missions from fulldrivers
+		<where>driver_enable=0 
+			<if test="name!=null and name!=''">
+				and (name like CONCAT(CONCAT('%',#{name}),'%')) 
+			</if>
+		</where> 
+		order by driver_state,driver_missions
+	</select>
+	
+	<select id="selectCar" resultType="CarBean" parameterType="CarBean">
+		select car_id,car_number,car_state,car_enable,seats,
+		(select count(0) from tasks where task_car_id=car_id and task_state&lt;90) 
+		as car_missions 
+		from cars
+		<where>car_enable=0 
+			<if test="car_number!=null and car_number!=''">
+				and (car_number like CONCAT(CONCAT('%',#{car_number}),'%')) 
+			</if>
+		</where> 
+		order by car_state,car_missions
+	</select>
+	
+	<resultMap type="RequestBean" id="RequestMap">
+		<id column="request_id" property="request_id"/>
+		<result column="request_user_id" property="request_user_id"/>
+		<result column="requesttime" property="requesttime"/>
+		<result column="needstarttime" property="needstarttime"/>
+		<result column="needendtime" property="needendtime"/>
+		<result column="needduringtime" property="needduringtime"/>
+		<result column="needplace" property="needplace"/>
+		<result column="needseats" property="needseats"/>
+		<result column="request_task_id" property="request_task_id"/>
+		<result column="request_state" property="request_state"/>
+		<result column="needreason" property="needreason"/>
+		
+		<association property="userBean" javaType="UserBean">
+			<id column="user_id" property="user_id"/>
+			<result column="name" property="name"/>
+			<result column="mobile_phone" property="mobile_phone"/>
+			<result column="office_phone" property="office_phone"/>
+			<result column="v_phone" property="v_phone"/>
+			<result column="department" property="department"/>
+			<result column="job" property="job"/>
+			<result column="picture" property="picture"/>
+		</association>
+	</resultMap>
+	
+	
+	<select id="selectRequested" resultMap="RequestMap">
+		select request_id,request_user_id,requesttime,needstarttime,needendtime,needduringtime,
+			needplace,needseats,request_task_id,request_state,user_id,name,mobile_phone
+			,office_phone,v_phone,department,job,picture,needreason
+		from requests,users
+		where user_id=request_user_id and request_task_id=#{task_id}
+	</select>
+	<select id="selectRequesting" resultMap="RequestMap">
+		select request_id,request_user_id,requesttime,needstarttime,needendtime,needduringtime,
+			needplace,needseats,request_task_id,request_state,user_id,name,mobile_phone
+			,office_phone,v_phone,department,job,picture,needreason
+		from requests,users
+		where user_id=request_user_id and request_task_id=0 and request_state=20
+	</select>
+	<select id="selectTaskById" resultType="TaskBean" parameterType="Integer">
+		select * from tasks where task_id=#{task_id}
+	</select>
+	<select id="selectTaskNoDouble" resultType="RequestBean" parameterType="RequestBean">
+		select request_id from requests where request_user_id=#{request_user_id} and request_task_id=#{request_task_id}
+	</select>
+	<update id="addTaskRequest" parameterType="RequestBean">
+		update requests set request_task_id=#{request_task_id} where request_id=#{request_id} and request_state=20
+	</update>
+	
+	<update id="removeTaskRequest" parameterType="RequestBean">
+		update requests set request_task_id=0 where request_id=#{request_id} and request_state=20
+	</update>
+	<update id="refuseTaskRequest" parameterType="RequestBean">
+		update requests set request_state=10 where request_id=#{request_id} and request_state=20 and request_task_id=0
+	</update>
+	<update id="decideTask" parameterType="TaskBean">
+		update tasks set task_state=70 where task_id=#{task_id} and task_state=60 and 
+			(select count(0) from requests where request_task_id=#{task_id})>0
+	</update>
+	<update id="editTaskDriver" parameterType="TaskBean">
+		update tasks set task_driver_id=#{task_driver_id} where task_id=#{task_id} and task_state=60
+	</update>
+	<update id="editTaskCar" parameterType="TaskBean">
+		update tasks set task_car_id=#{task_car_id} where task_id=#{task_id} and task_state=60
+	</update>
+	<update id="editTaskmaybegintime" parameterType="TaskBean">
+		update tasks set maybegintime=#{maybegintime} where task_id=#{task_id} and task_state=60
+	</update>
+	<update id="goTask" parameterType="TaskBean">
+		update tasks set begintime=#{begintime},task_state=80 where task_id=#{task_id} and task_state=70
+	</update>
+	<update id="backTask" parameterType="TaskBean">
+		update tasks set endtime=#{endtime},task_state=90 where task_id=#{task_id} and task_state=80
+	</update>
+	<delete id="delTask" parameterType="TaskBean">
+		delete from tasks where task_id=#{task_id} and task_state=60 and 
+			(select count(0) from requests where request_task_id=#{task_id})=0
+	</delete>
+	<update id="redecideTask" parameterType="TaskBean">
+		update tasks set task_state=60 where task_id=#{task_id} and task_state=70
+	</update>
+	<update id="updateTaskCar" parameterType="TaskBean">
+		update cars set car_state=(select nvl(max(task_state)-60,0) from tasks where task_id=#{task_id} and task_state&lt;90)  
+		where car_id=#{task_car_id}
+	</update>
+	<update id="updateTaskDriver" parameterType="TaskBean">
+		update drivers set driver_state=(select nvl(max(task_state)-60,0) from tasks where task_id=#{task_id} and task_state&lt;90)  
+		where driver_id=#{task_driver_id}
+	</update>
+	<delete id="delTaskById">
+		delete from tasks where task_id=#{task_id} and task_state=90
+	</delete>
+</mapper>
